@@ -7,13 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/project")
@@ -34,7 +30,11 @@ public class ProjectController {
     public ResponseEntity<?> createNewProject(@Valid @RequestBody Project project, BindingResult result){
         System.out.println(project);
 
-        return mapValidationErrorService.mapValidationService(result)
-                .orElse(new ResponseEntity<>(projectService.saveOrUpdateProject(project), HttpStatus.CREATED));
+        ResponseEntity<?> errorEntity = mapValidationErrorService.mapValidationService(result);
+        if(errorEntity != null) {
+            return new ResponseEntity<>(errorEntity, HttpStatus.BAD_REQUEST);
+        }
+        project = projectService.saveOrUpdateProject(project);
+        return new ResponseEntity<>(project, HttpStatus.CREATED);
     }
 }
